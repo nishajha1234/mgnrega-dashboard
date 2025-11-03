@@ -125,7 +125,7 @@ function Dashboard({ lang }) {
   const [districtInfo, setDistrictInfo] = useState(null);
   const [timeseries, setTimeseries] = useState(SAMPLE_TIMESERIES);
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 useEffect(() => {
   if (!district) return;
