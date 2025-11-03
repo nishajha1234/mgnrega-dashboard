@@ -442,7 +442,7 @@ export default function App() {
           </Routes>
         </main>
 
-        <footer className="bg-white border-t p-4 text-center text-sm text-gray-500">Built for Bihar — demo UI • Replace mock data with backend API for full app</footer>
+        <footer className="bg-white border-t p-4 text-center text-sm text-gray-500">© 2025 MGNREGA Project — Empowering Rural India through Employment.</footer>
       </div>
     </Router>
   );
