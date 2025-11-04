@@ -3,6 +3,9 @@ import BASE_URL from './config';
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid, Legend } from "recharts";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 // NOTE: TailwindCSS classes are used throughout. Install dependencies:
 // react, react-dom, react-router-dom, recharts, tailwindcss
@@ -129,7 +132,11 @@ function Dashboard({ lang }) {
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 useEffect(() => {
-  if (!district) return;
+    if (!district) {
+    setDistrictInfo(null);
+    setTimeseries([]);
+    return;
+  }
 
   // Fetch real district data from backend
   fetch(`${BASE_URL}/api/data/${district}`)
@@ -141,7 +148,7 @@ useEffect(() => {
 
     .catch(err => {
       console.error("Error fetching data:", err);
-      alert("Failed to fetch live data, showing sample instead.");
+      toast.warn("Failed to fetch live data, showing sample instead.");
       setDistrictInfo({
         district_name: SAMPLE_DISTRICTS.find(d => d.district_code === district)?.district_name || 'Unknown',
         Total_Individuals_Worked: 90928,
@@ -156,33 +163,51 @@ useEffect(() => {
 }, [district]);
 
 
-  const handleDetect = () => {
-    // best-effort geolocation -> district detection
-    if (!navigator.geolocation) {
-      alert('Geolocation not available on this device');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+ const handleDetect = () => {
+  if (!navigator.geolocation) {
+    toast.error('Geolocation not available on this device');
+    return;
+  }
+
+  // Show a temporary detecting toast
+  const detectingToast = toast.loading('Detecting your district...');
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
       const { latitude, longitude } = pos.coords;
-      // NOTE: reverse-geocoding ideally happens on backend (avoids exposing API keys); here we try a free service
       try {
-        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+        const res = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        );
         const jd = await res.json();
-        // bigdatacloud returns locality/principalSubdivision etc. We'll try locality -> district
-        // This is best-effort: if district cannot be mapped, fallback to manual select.
-        const locality = jd.locality || jd.city || jd.principalSubdivision;
-        // try match with sample list
-        const match = SAMPLE_DISTRICTS.find(d => locality && locality.toUpperCase().includes(d.district_name.split(' ')[0]));
-        if (match) setDistrict(match.district_code);
-        else alert('Could not auto-detect district. Please select from list.');
+
+        const locality = jd.locality || jd.city || jd.principalSubdivision || '';
+        const match = SAMPLE_DISTRICTS.find(
+          (d) => locality && locality.toUpperCase().includes(d.district_name.split(' ')[0])
+        );
+
+        // Remove the detecting toast before showing the result
+        toast.dismiss(detectingToast);
+
+        if (match) {
+          setDistrict(match.district_code);
+          toast.success(`Detected district: ${match.district_name}`);
+        } else {
+          toast.warn('Could not auto-detect district. Please select from the list.');
+        }
       } catch (e) {
         console.error(e);
-        alert('Auto-detect failed — please select manually.');
+        toast.dismiss(detectingToast);
+        toast.error('Auto-detect failed — please select manually.');
       }
-    }, (err) => {
-      alert('Location permission denied or unavailable');
-    });
-  };
+    },
+    (err) => {
+      toast.dismiss();
+      toast.error('Location permission denied or unavailable.');
+    }
+  );
+};
+
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-4">
@@ -217,7 +242,7 @@ useEffect(() => {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip />
-                    <Line type="monotone" dataKey="persondays" stroke="#2563EB" strokeWidth={3} dot={false} />
+                    <Line type="monotone" dataKey="Total_Individuals_Worked" stroke="#2563EB" strokeWidth={3} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -450,6 +475,7 @@ export default function App() {
         </main>
 
         <footer className="bg-white border-t p-4 text-center text-sm text-gray-500">© 2025 MGNREGA Project — Empowering Rural India through Employment.</footer>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </Router>
   );
