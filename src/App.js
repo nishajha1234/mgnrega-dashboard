@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import BASE_URL from './config';
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid, Legend } from "recharts";
@@ -131,7 +132,7 @@ useEffect(() => {
   if (!district) return;
 
   // Fetch real district data from backend
-  fetch(`${API_URL}/api/data/${district}`)
+  fetch(`${BASE_URL}/api/data/${district}`)
     .then(res => res.json())
    .then(data => {
   setDistrictInfo(data.kpis);
