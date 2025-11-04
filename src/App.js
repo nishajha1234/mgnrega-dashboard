@@ -198,7 +198,13 @@ useEffect(() => {
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <KpiCard title={lang === 'hi' ? 'कुल व्यक्ति' : 'Total Individuals'} value={formatNumber(districtInfo.Total_Individuals_Worked)} hint={lang === 'hi' ? 'कुल लोगों ने काम किया' : 'Total individuals worked'} status={'good'} />
             <KpiCard title={lang === 'hi' ? 'कुल खर्च (लाख)' : 'Total Expenditure'} value={`₹ ${formatNumber(districtInfo.Total_Exp)}`} hint={lang === 'hi' ? 'कुल खर्च' : 'Total exp (last month)'} status={'warn'} />
-            <KpiCard title={lang === 'hi' ? 'औसत दिनों/घरेलू' : 'Avg days/HH'} value={districtInfo.Average_days_of_employment_provided_per_Household} hint={lang === 'hi' ? 'औसत रोजगार दिन' : 'Average days of employment'} status={'good'} />
+<KpiCard 
+  title={lang === 'hi' ? 'औसत दिनों/घरेलू' : 'Avg days/Household'} 
+  value={districtInfo.Avg_Days_Worked ?? 0} 
+  hint={lang === 'hi' ? 'औसत रोजगार दिन' : 'Average days of employment'} 
+  status={'good'} 
+/>
+
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
